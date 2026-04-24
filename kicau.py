@@ -5,7 +5,6 @@ import os
 import base64
 import av
 from streamlit_webrtc import webrtc_streamer
-import streamlit.components.v1 as components
 
 ASCII_CHARS = ".,;:i1lfLCG08@#"
 ASCII_LEN = len(ASCII_CHARS)
@@ -80,38 +79,41 @@ def play_background_audio():
         with open(audio_path, "rb") as f:
             data = f.read()
             b64 = base64.b64encode(data).decode()
+            
+            # Menggunakan st.markdown agar tidak kena warning deprecation
             html_code = f"""
-            <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <div style="text-align: center; margin-bottom: 20px;">
                 <audio id="suara-burung" loop>
                     <source src="data:audio/mp3;base64,{b64}" type="audio/mpeg">
                 </audio>
                 <button onclick="document.getElementById('suara-burung').play()" 
                         style="padding: 12px 20px; background-color: #00CC66; color: white; 
                                border: none; border-radius: 8px; font-size: 16px; cursor: pointer;
-                               font-family: sans-serif; font-weight: bold; width: 100%;">
+                               font-family: sans-serif; font-weight: bold; width: 100%; box-shadow: 0px 4px 6px rgba(0,0,0,0.1);">
                     🔊 KLIK DI SINI UNTUK MENYALAKAN SUARA 🔊
                 </button>
-                <span style="font-family: sans-serif; font-size: 12px; color: #888; margin-top: 8px;">
+                <p style="font-family: sans-serif; font-size: 12px; color: #888; margin-top: 8px;">
                     *Aturan Browser: Suara tidak bisa berputar otomatis tanpa diklik
-                </span>
+                </p>
             </div>
             """
-            components.html(html_code, height=100)
+            st.markdown(html_code, unsafe_allow_html=True)
 
 play_background_audio()
 
+# --- Konfigurasi Jaringan Ekstra Kuat ---
 webrtc_streamer(
     key="kicau-cam",
     video_processor_factory=VideoProcessor,
-    # Menambahkan server STUN cadangan agar koneksi tidak mudah putus
     rtc_configuration={
         "iceServers": [
             {"urls": ["stun:stun.l.google.com:19302"]},
             {"urls": ["stun:stun1.l.google.com:19302"]},
             {"urls": ["stun:stun2.l.google.com:19302"]},
-            {"urls": ["stun:stun.services.mozilla.com"]}
+            {"urls": ["stun:global.stun.twilio.com:3478"]} # Tambahan server publik yang lebih kuat
         ]
     },
     media_stream_constraints={"video": True, "audio": False},
-    async_processing=True
+    async_processing=True,
+    sendback_audio=False # Pastikan stream balik tidak mengirim audio
 )
