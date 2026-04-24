@@ -103,5 +103,15 @@ play_background_audio()
 webrtc_streamer(
     key="kicau-cam",
     video_processor_factory=VideoProcessor,
-    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+    # Menambahkan server STUN cadangan agar koneksi tidak mudah putus
+    rtc_configuration={
+        "iceServers": [
+            {"urls": ["stun:stun.l.google.com:19302"]},
+            {"urls": ["stun:stun1.l.google.com:19302"]},
+            {"urls": ["stun:stun2.l.google.com:19302"]},
+            {"urls": ["stun:stun.services.mozilla.com"]}
+        ]
+    },
+    media_stream_constraints={"video": True, "audio": False},
+    async_processing=True
 )
